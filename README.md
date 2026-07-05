@@ -2,9 +2,6 @@
 
 > **AI-powered career intelligence platform** — analyzes your resume, GitHub profile, and coding stats to generate a personalized skill-gap analysis and learning roadmap.
 
-Built with **Google ADK 2.0** as a capstone project for the Kaggle 5-Day AI Agents course.
-
----
 
 ## What It Does
 

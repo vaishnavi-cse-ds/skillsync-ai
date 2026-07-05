@@ -12,19 +12,19 @@ career roadmaps.
 ### Workflow Graph (`app/agent.py`)
 ```
 START
-  └─► security_checkpoint (function node)
-        ├─► [safe]  orchestrator (LlmAgent)
-        │             └─► hitl_approval (function node, async)
-        │                   ├─► [approved] roadmap_generator (LlmAgent)
-        │                   │               └─► final_output (function node)
-        │                   └─► [rejected]  orchestrator (re-runs with feedback)
-        └─► [unsafe] security_event (function node)
-                      └─► final_output (function node)
+  └─► input_parser (LlmAgent)
+        └─► security_checkpoint (function node)
+              ├─► [safe]  orchestrator (LlmAgent)
+              │             └─► roadmap_generator (LlmAgent)
+              │                   └─► final_output (function node)
+              └─► [unsafe] security_event (function node)
+                            └─► final_output (function node)
 ```
 
 ### Agents
 | Agent | Role | Tools |
 |---|---|---|
+| `input_parser` | Parses raw text input into a structured UserInputSchema | — |
 | `orchestrator` | Coordinates analysis, synthesizes OrchestratorReportSchema | AgentTool(resume_analyzer), AgentTool(profile_analyzer) |
 | `resume_analyzer` | ATS score, resume feedback, skill gaps | — |
 | `profile_analyzer` | GitHub & coding platform analysis | MCP: fetch_github_profile, fetch_coding_profile |

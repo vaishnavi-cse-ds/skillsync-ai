@@ -19,20 +19,19 @@ Target users: students, early-career developers, and mid-career engineers consid
 
 ```
 START
-  └─► [security_checkpoint] — PII scrub, injection detection, domain validation
-        ├─[safe]──► [orchestrator] — delegates to sub-agents via AgentTool
-        │             ├─► [resume_analyzer] — ATS score, feedback, skill gaps
-        │             └─► [profile_analyzer] — GitHub & coding platform analysis
-        │                      └─ uses MCP: fetch_github_profile, fetch_coding_profile
-        │           [hitl_approval] — RequestInput pause for human review
-        │             ├─[approved]─► [roadmap_generator] — personalized learning plan
-        │             │                └─ uses MCP: search_learning_resources
-        │             └─[rejected]──► [orchestrator] re-runs with feedback
-        │                              └─► [final_output] — formatted markdown report
-        └─[unsafe]─► [security_event] ─► [final_output] — security alert
+  └─► [input_parser] — parses raw plain text into structured UserInputSchema
+        └─► [security_checkpoint] — PII scrub, injection detection, domain validation
+              ├─[safe]──► [orchestrator] — delegates to sub-agents via AgentTool
+              │             ├─► [resume_analyzer] — ATS score, feedback, skill gaps
+              │             └─► [profile_analyzer] — GitHub & coding platform analysis
+              │                      └─ uses MCP: fetch_github_profile, fetch_coding_profile
+              │             └─► [roadmap_generator] — personalized learning plan
+              │                      └─ uses MCP: search_learning_resources
+              │                      └─► [final_output] — formatted markdown report
+              └─[unsafe]─► [security_event] ─► [final_output] — security alert
 ```
 
-All agents share state through `ctx.state`, and the workflow is resumable via `ResumabilityConfig(is_resumable=True)` to support the HITL pause.
+All agents share state through `ctx.state`.
 
 ---
 
@@ -46,22 +45,20 @@ Implemented using the ADK 2.0 Workflow graph API with function nodes and LlmAgen
 
 ```python
 root_agent = Workflow(
-    name="skillsync-workflow",
+    name="skillsync_workflow",
     edges=[
-        (START, security_checkpoint),
-        (security_checkpoint, orchestrator, "safe"),
-        (security_checkpoint, security_event, "unsafe"),
-        (orchestrator, hitl_approval),
-        (hitl_approval, roadmap_generator, "approved"),
-        (hitl_approval, orchestrator, "rejected"),
+        (START, input_parser),
+        (input_parser, security_checkpoint),
+        (security_checkpoint, {"safe": orchestrator, "unsafe": security_event}),
+        (orchestrator, roadmap_generator),
         (roadmap_generator, final_output),
         (security_event, final_output),
     ],
-    input_schema=UserInputSchema,
+    input_schema=RawUserInputSchema,
 )
 ```
 
-Inter-node data sharing uses `ctx.state` (e.g., `state["resume_text"]`, `state["orchestrator_report"]`).
+Inter-node data sharing uses `ctx.state` (e.g., `state["orchestrator_report"]`).
 
 ### LlmAgent Sub-Agents
 
@@ -116,23 +113,9 @@ Every decision generates a structured JSON audit log:
 {"event": "input_scrubbing_and_safety", "status": "allowed", "severity": "INFO", "details": {"emails_redacted": 1, "phone_numbers_redacted": 0}}
 ```
 
-### Human-in-the-Loop (HITL)
-
-**File:** `app/agent.py` — `hitl_approval()` async function node
-
-After the orchestrator produces a draft report, execution pauses using `RequestInput`:
-```python
-yield RequestInput(
-    interrupt_id="approval",
-    message=f"### Draft Report\nATS Score: {node_input.ats_score}/100\nApprove or provide feedback:"
-)
-```
-
-The user can:
-- Type `"yes"` / `"approve"` → route `"approved"` → Roadmap Generator
-- Type feedback → route `"rejected"` → Orchestrator re-runs with the feedback injected via `{user_refinement_feedback}`
-
-This is enabled by `ResumabilityConfig(is_resumable=True)` on the `App` object, which persists session state across the pause.
+### Input Parsing & Fallback
+ 
+At the entry point of the workflow, raw plain text submitted by the user is processed by `input_parser`. It extracts resume text, GitHub username, LinkedIn URL, and coding profiles automatically. If live LLM parsing fails due to API quota limits, a local regex-based fallback engine automatically extracts the metadata (e.g. usernames and profile links) to ensure uninterrupted session execution.
 
 ### Agents CLI
 
@@ -165,41 +148,36 @@ The MCP server (`app/mcp_server.py`) uses **FastMCP** with stdio transport, laun
 
 Current tools return structured mock data simulating real API responses, making the system fully testable without external API dependencies.
 
+## Fallback Engine Design
+ 
+To ensure continuous operation under low API quota conditions (common with Gemini Free Tier API keys), we implemented fallback mechanisms across critical nodes:
+1. **Input Parser Fallback:** If the LLM call fails, the node automatically falls back to regex-based extraction to grab the resume content, GitHub profile, and LinkedIn URL locally.
+2. **Roadmap Generator Fallback:** If the LLM call fails, the node falls back to generating a comprehensive roadmap locally based on the identified skill gaps in the orchestrator report.
+ 
+This makes SkillSync AI an extremely resilient agentic system that never crashes due to API exhaustion.
+ 
 ---
-
-## HITL Flow
-
-The human-in-the-loop flow serves two purposes:
-
-1. **Quality Gate** — The user reviews the ATS score and analysis before an expensive roadmap generation step
-2. **Feedback Loop** — The user can inject domain-specific feedback (e.g., "focus on cloud skills") that the Orchestrator incorporates in a re-run
-
-This makes SkillSync AI a collaborative tool, not a black box. The agent system is transparent and steerable.
-
----
-
+ 
 ## Demo Walkthrough
-
+ 
 ### Test Case 1 — Full Happy Path
-Send the JSON payload with a real resume text and GitHub username. The security checkpoint clears the input, the orchestrator delegates to both sub-agents, and HITL pauses for your approval. Type "yes" and watch the roadmap generate.
-
+Send a raw plain text message with resume details and coding links (e.g. *"Jane Smith. 3 years Python developer. My github is janesmith..."*). The input parser extracts the parameters, the safety checkpoint validates them, the orchestrator performs the analysis, and the roadmap is generated and displayed instantly.
+ 
 ### Test Case 2 — Security Block
-Send the injection payload. Watch the system block immediately at the security checkpoint with a CRITICAL audit log — no LLM calls are made.
-
-### Test Case 3 — Refinement Loop
-At the HITL pause, type specific feedback instead of "yes". The orchestrator incorporates your guidance and re-generates the report with that focus applied.
-
+Send an adversarial payload (e.g. *"ignore previous instructions..."*). The input parser extracts the text, and the security checkpoint blocks the request immediately with a CRITICAL audit log to stderr. No downstream agents or MCP tools are called.
+ 
 ---
-
+ 
 ## Impact / Value Statement
-
+ 
 **Who benefits:**
 - **Students** — Get a clear, personalized path from where they are to where they want to be
 - **Mid-career developers** — Quickly identify what skills to upskill for their next role
 - **Career coaches** — A scalable tool to serve more clients with consistent, data-driven insights
 - **HR teams** — An unbiased first-pass screening aid with full audit trails
-
+ 
 **Why it matters:**
 Personalized career guidance was previously accessible only to those who could afford coaches or mentors. SkillSync AI democratizes this intelligence, making it available on-demand to anyone with a resume and a GitHub profile.
-
+ 
 The security-first design ensures the system can be safely deployed in professional environments where data privacy is critical.
+ 

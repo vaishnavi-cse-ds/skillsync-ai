@@ -1,0 +1,48 @@
+# Secrets — NEVER commit these
+.env
+*.env
+.env.*
+.env.local
+
+# Python virtual env
+.venv/
+venv/
+env/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# ADK local state & sessions
+.adk/
+*.db
+
+# Test & lint caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Terraform state (may contain secrets)
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+
+# Artifacts & traces (generated at runtime)
+artifacts/
+
+# IDE settings
+.vscode/
+.idea/
+
+# uv lock (optional: remove this line if you want to commit it for reproducibility)
+# uv.lock

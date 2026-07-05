@@ -1,4 +1,4 @@
-# SkillSync AI — Submission Write-Up
+# SkillSync AI
 
 ## Problem Statement
 

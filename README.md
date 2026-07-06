@@ -2,17 +2,22 @@
 
 > **AI-powered career intelligence platform** — analyzes your resume, GitHub profile, and coding stats to generate a personalized skill-gap analysis and learning roadmap.
 
+### 🌐 Live Public URL
+You can access and test the live application directly from any browser at:
+**[https://confess-armband-unturned.ngrok-free.dev](https://confess-armband-unturned.ngrok-free.dev)**
+
+---
 
 ## What It Does
 
 SkillSync AI orchestrates a team of specialized AI agents to give you a comprehensive career evaluation:
 
-1. 📋 **Resume Analyzer** — Computes an ATS score, identifies formatting issues and missing keywords
-2. 💻 **Profile Analyzer** — Reviews your GitHub repositories and competitive coding stats (LeetCode, HackerRank, CodeChef)
-3. 🧠 **Orchestrator** — Synthesizes both analyses into a unified report
-4. 🗺️ **Roadmap Generator** — Produces a tailored learning path, project ideas, and interview practice questions
-5. 🔒 **Security Checkpoint** — Scrubs PII, detects prompt injection, and validates input
-6. 🙋 **Human-in-the-Loop** — Lets you approve or refine the analysis before the roadmap is generated
+1. ✍️ **Input Parser** — Extracts and structures resume details and profile links from raw plain text automatically
+2. 📋 **Resume Analyzer** — Computes an ATS score, identifies formatting issues and missing keywords
+3. 💻 **Profile Analyzer** — Reviews your GitHub repositories and competitive coding stats (LeetCode, HackerRank, CodeChef)
+4. 🧠 **Orchestrator** — Synthesizes both analyses into a unified report
+5. 🗺️ **Roadmap Generator** — Produces a tailored learning path, project ideas, and interview practice questions
+6. 🔒 **Security Checkpoint** — Scrubs PII, detects prompt injection, and validates input
 
 ---
 
@@ -20,27 +25,25 @@ SkillSync AI orchestrates a team of specialized AI agents to give you a comprehe
 
 ```
 START
-  └─► 🔒 Security Checkpoint
-        ├─[safe]──► 🧠 Orchestrator ◄───────────────┐
-        │             ├─► 📋 Resume Analyzer          │
-        │             └─► 💻 Profile Analyzer         │
-        │           🙋 HITL Approval                  │
-        │             ├─[approved]─► 🗺️ Roadmap Gen   │
-        │             └─[rejected]─────────────────────┘
-        │                            └─► ✅ Final Output
-        └─[unsafe]─► ⚠️ Security Event ─► ✅ Final Output
+  └─► ✍️ Input Parser
+        └─► 🔒 Security Checkpoint
+              ├─[safe]──► 🧠 Orchestrator
+              │             ├─► 📋 Resume Analyzer
+              │             └─► 💻 Profile Analyzer
+              │           └─► 🗺️ Roadmap Gen
+              │                 └─► ✅ Final Output
+              └─[unsafe]─► ⚠️ Security Event ─► ✅ Final Output
 ```
 
 ```mermaid
 graph TD
-    START --> SC["🔒 Security Checkpoint"]
+    START --> IP["✍️ Input Parser"]
+    IP --> SC["🔒 Security Checkpoint"]
     SC --safe--> ORC["🧠 Orchestrator"]
     SC --unsafe--> SE["⚠️ Security Event"]
     ORC --> RA["📋 Resume Analyzer"]
     ORC --> PA["💻 Profile Analyzer"]
-    ORC --> HITL["🙋 Human Approval"]
-    HITL --approved--> RG["🗺️ Roadmap Generator"]
-    HITL --rejected--> ORC
+    ORC --> RG["🗺️ Roadmap Generator"]
     RG --> FO["✅ Final Output"]
     SE --> FO
     MCP["📦 MCP Server"] -.fetch_github_profile.-> PA
@@ -82,26 +85,34 @@ make playground
 # Windows PowerShell (avoids wildcard expansion bug):
 uv run adk web app --host 127.0.0.1 --port 18081 --reload_agents
 
-# 5. Open http://localhost:18081 in your browser
+# 5. Open the app locally at http://localhost:18081 or publicly at https://confess-armband-unturned.ngrok-free.dev
 ```
 
 ---
 
-## How to Run
+## How to Run & Test
 
-### Interactive Playground (recommended for testing)
+### 🌐 Live Public Demo (No Setup Needed)
+Anyone can test the live application instantly without cloning or setting up API keys by opening:
+👉 **[https://confess-armband-unturned.ngrok-free.dev](https://confess-armband-unturned.ngrok-free.dev)**
+
+---
+
+### 💻 Local Development Setup
+
+#### Interactive Playground
 ```powershell
 # Windows
 uv run adk web app --host 127.0.0.1 --port 18081 --reload_agents
 ```
-Opens the ADK Dev UI at **http://localhost:18081**
+Opens the ADK Dev UI locally at **http://localhost:18081**
 
-### Local FastAPI Server
+#### Local FastAPI Server
 ```bash
 make run
 # or: uv run uvicorn app.fast_api_app:app --host 0.0.0.0 --port 8000 --reload
 ```
-API available at **http://localhost:8000**
+Local API available at **http://localhost:8000**
 
 ---
 

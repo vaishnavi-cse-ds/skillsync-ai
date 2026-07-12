@@ -53,9 +53,15 @@ if os.getenv("INTEGRATION_TEST") == "TRUE":
     import logging
     logger = logging.getLogger(__name__)
 else:
-    _, project_id = google.auth.default()
-    logging_client = google_cloud_logging.Client()
-    logger = logging_client.logger(__name__)
+    import google.auth.exceptions
+    try:
+        _, project_id = google.auth.default()
+        logging_client = google_cloud_logging.Client()
+        logger = logging_client.logger(__name__)
+    except google.auth.exceptions.DefaultCredentialsError:
+        import logging
+        project_id = None
+        logger = logging.getLogger(__name__)
 allow_origins = (
     os.getenv("ALLOW_ORIGINS", "").split(",") if os.getenv("ALLOW_ORIGINS") else None
 )

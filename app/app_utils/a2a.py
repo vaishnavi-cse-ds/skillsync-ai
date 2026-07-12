@@ -87,7 +87,8 @@ def _resolve_app_url(app_url: str | None) -> str:
             f"/reasoningEngines/{agent_engine_id}/api"
         )
 
-    return "http://0.0.0.0:8000"
+    port = os.getenv("PORT", "8000")
+    return f"http://0.0.0.0:{port}"
 
 
 async def attach_a2a_routes(

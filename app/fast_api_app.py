@@ -102,6 +102,7 @@ app: FastAPI = get_fast_api_app(
     artifact_service_uri=services.ARTIFACT_SERVICE_URI,
     allow_origins=allow_origins,
     session_service_uri=services.SESSION_SERVICE_URI,
+    use_local_storage=False,
     otel_to_cloud=False,
     lifespan=lifespan,
 )

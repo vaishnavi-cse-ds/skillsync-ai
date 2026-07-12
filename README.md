@@ -4,7 +4,7 @@
 
 ### 🌐 Live Public URL
 You can access and test the live application directly from any browser at:
-**[https://confess-armband-unturned.ngrok-free.dev](https://confess-armband-unturned.ngrok-free.dev)**
+**[https://skillsync-ai-exhv.onrender.com](https://skillsync-ai-exhv.onrender.com)**
 
 ---
 
@@ -85,7 +85,7 @@ make playground
 # Windows PowerShell (avoids wildcard expansion bug):
 uv run adk web app --host 127.0.0.1 --port 18081 --reload_agents
 
-# 5. Open the app locally at http://localhost:18081 or publicly at https://confess-armband-unturned.ngrok-free.dev
+# 5. Open the app locally at http://localhost:18081 or publicly at https://skillsync-ai-exhv.onrender.com
 ```
 
 ---
@@ -94,7 +94,7 @@ uv run adk web app --host 127.0.0.1 --port 18081 --reload_agents
 
 ### 🌐 Live Public Demo (No Setup Needed)
 Anyone can test the live application instantly without cloning or setting up API keys by opening:
-👉 **[https://confess-armband-unturned.ngrok-free.dev](https://confess-armband-unturned.ngrok-free.dev)**
+👉 **[https://skillsync-ai-exhv.onrender.com](https://skillsync-ai-exhv.onrender.com)**
 
 ---
 

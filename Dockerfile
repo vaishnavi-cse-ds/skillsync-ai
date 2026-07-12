@@ -15,9 +15,6 @@ RUN uv pip install --system --no-cache -e .
 # Copy application source code
 COPY app/ ./app/
 
-# Copy environment defaults (API key injected at runtime)
-COPY .env.example .env.example
-
 # Expose the application port
 EXPOSE 8000
 

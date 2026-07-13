@@ -392,8 +392,14 @@ async def hitl_approval(ctx: Context, node_input: OrchestratorReportSchema) -> E
             state={"user_refinement_feedback": user_response}
         )
 
-def final_output(ctx: Context, node_input: dict) -> Event:
+def final_output(ctx: Context, node_input: Any) -> Event:
     """Constructs and yields a beautifully formatted markdown report for the web UI."""
+    if isinstance(node_input, str):
+        error_msg = f"### ⚠️ Security Alert\n\n{node_input}"
+        yield Event(content=genai_types.Content(role='model', parts=[genai_types.Part.from_text(text=error_msg)]))
+        yield Event(output={"error": node_input})
+        return
+
     if not ctx.state.get("is_safe", True):
         error_msg = f"### ⚠️ Security Alert\n\n{node_input}"
         yield Event(content=genai_types.Content(role='model', parts=[genai_types.Part.from_text(text=error_msg)]))
